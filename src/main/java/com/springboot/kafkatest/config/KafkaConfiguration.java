@@ -1,6 +1,7 @@
 package com.springboot.kafkatest.config;
 
 import com.springboot.kafkatest.dto.Test4;
+import com.springboot.kafkatest.dto.Test5;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -12,6 +13,7 @@ import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaOperations;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.SeekToCurrentErrorHandler;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
@@ -19,6 +21,7 @@ import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Configuration
@@ -48,6 +51,25 @@ public class KafkaConfiguration {
     }
 
     @Bean
+    public ConcurrentKafkaListenerContainerFactory<Integer, Test5> test5KafkaListenerContainerFactory(KafkaTemplate template) {
+        ConcurrentKafkaListenerContainerFactory<Integer, Test5> factory = new ConcurrentKafkaListenerContainerFactory<>();
+
+        //consumer factory config
+        Map<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "kafka-test");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+        props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
+
+        ConsumerFactory<Integer, Test5> consumerFactory = new DefaultKafkaConsumerFactory<>(props);
+        factory.setConsumerFactory(consumerFactory);
+        factory.setConcurrency(2);
+        factory.setErrorHandler(new SeekToCurrentErrorHandler(new DeadLetterPublishingRecoverer(template), new FixedBackOff(TimeUnit.SECONDS.toMillis(5), 3)));
+        return factory;
+    }
+
+    @Bean
     public NewTopic topic3() {
         return TopicBuilder.name("testKafkaSend3")
                 .partitions(3)
@@ -59,6 +81,15 @@ public class KafkaConfiguration {
     @Bean
     public NewTopic topic4() {
         return TopicBuilder.name("testKafkaSend4")
+                .partitions(2)
+                .replicas(1)
+                .compact()
+                .build();
+    }
+
+    @Bean
+    public NewTopic topic5() {
+        return TopicBuilder.name("testKafkaSend5")
                 .partitions(2)
                 .replicas(1)
                 .compact()

@@ -1,9 +1,6 @@
 package com.springboot.kafkatest;
 
-import com.springboot.kafkatest.dto.Test1;
-import com.springboot.kafkatest.dto.Test2;
-import com.springboot.kafkatest.dto.Test3;
-import com.springboot.kafkatest.dto.Test4;
+import com.springboot.kafkatest.dto.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -34,5 +31,10 @@ public class KafkatestApplication {
 	@KafkaListener(topics = "testKafkaSend4", containerFactory = "test4KafkaListenerContainerFactory")
 	public void listen4(Test4 test4) {
 		log.info("Received: {} for thread id: {}", test4, Thread.currentThread().getId());
+	}
+
+	@KafkaListener(topics = "testKafkaSend5", containerFactory = "test5KafkaListenerContainerFactory")
+	public void listen5(Test5 test5) {
+		log.info("Received: {} for thread id: {}", test5, Thread.currentThread().getId());
 	}
 }
