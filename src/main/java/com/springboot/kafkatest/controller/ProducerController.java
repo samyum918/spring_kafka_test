@@ -8,10 +8,14 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.listener.MessageListenerContainer;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,12 +33,31 @@ public class ProducerController {
     @Autowired
     private KafkaTemplate<Object, Object> template;
 
+    @Autowired
+    private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
+
+    @GetMapping("/start/{listenerId}")
+    public void start(@PathVariable String listenerId) {
+        if(StringUtils.hasText(listenerId)) {
+            MessageListenerContainer listenerContainer = kafkaListenerEndpointRegistry.getListenerContainer(listenerId);
+            listenerContainer.start();
+        }
+    }
+
+    @GetMapping("/stop/{listenerId}")
+    public void stop(@PathVariable String listenerId) {
+        if(StringUtils.hasText(listenerId)) {
+            MessageListenerContainer listenerContainer = kafkaListenerEndpointRegistry.getListenerContainer(listenerId);
+            listenerContainer.stop();
+        }
+    }
+
     //test sending an object
     @GetMapping(path = "/send1")
     public ObjectNode send1() {
         ObjectNode objectNode = objectMapper.createObjectNode();
 
-        for(int i=0; i<1000; i++) {
+        for(int i=0; i<100_000; i++) {
             Test1 test1 = new Test1("abc", i);
             this.template.send("testKafkaSend1", test1);
         }

@@ -13,7 +13,7 @@ public class KafkatestApplication {
 		SpringApplication.run(KafkatestApplication.class, args);
 	}
 
-	@KafkaListener(topics = "testKafkaSend1")
+	@KafkaListener(topics = "testKafkaSend1", id = "testKafkaSend1")
 	public void listen1(Test1 test1) {
 		log.info("Received: {} for thread id: {}", test1, Thread.currentThread().getId());
 	}
@@ -23,7 +23,7 @@ public class KafkatestApplication {
 		log.info("Received: " + test2);
 	}
 
-	@KafkaListener(topics = "testKafkaSend3", concurrency = "${listen.concurrency:3}")
+	@KafkaListener(topics = "testKafkaSend3", id = "testKafkaSend3", concurrency = "${listen.concurrency:3}")
 	public void listen3(Test3 test3) {
 		log.info("Received: {} for thread id: {}", test3, Thread.currentThread().getId());
 	}
